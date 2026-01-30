@@ -33,25 +33,40 @@ router.get('/stats', async (req, res) => {
 
 // POST new project
 router.post('/', async (req, res) => {
-    const project = new Project({
-        projectName: req.body.projectName,
-        clientName: req.body.clientName,
-        githubLink: req.body.githubLink,
-        status: req.body.status,
-        totalAmount: req.body.totalAmount,
-        amountReceived: req.body.amountReceived,
-        startDate: req.body.startDate,
-        submissionDate: req.body.submissionDate,
-        paymentDate: req.body.paymentDate,
-        paymentMethod: req.body.paymentMethod,
-        notes: req.body.notes
-    });
-
     try {
+        // Validate required fields
+        if (!req.body.projectName || !req.body.clientName || !req.body.totalAmount) {
+            return res.status(400).json({
+                message: 'Missing required fields: projectName, clientName, and totalAmount are required'
+            });
+        }
+
+        const project = new Project({
+            projectName: req.body.projectName,
+            clientName: req.body.clientName,
+            githubLink: req.body.githubLink,
+            status: req.body.status || 'Not Started',
+            totalAmount: req.body.totalAmount,
+            amountReceived: req.body.amountReceived || 0,
+            startDate: req.body.startDate,
+            deadline: req.body.deadline,
+            submissionDate: req.body.submissionDate,
+            paymentDate: req.body.paymentDate,
+            paymentMethod: req.body.paymentMethod || 'Bank Transfer',
+            notes: req.body.notes
+        });
+
         const newProject = await project.save();
         res.status(201).json(newProject);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        console.error('Project creation error:', err);
+        res.status(400).json({
+            message: err.message,
+            details: err.errors ? Object.keys(err.errors).map(key => ({
+                field: key,
+                message: err.errors[key].message
+            })) : []
+        });
     }
 });
 

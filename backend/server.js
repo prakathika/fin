@@ -79,7 +79,13 @@ app.post('/api/signup', async (req, res) => {
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ Xarlex Database Connection Online'))
+    .then(() => {
+        console.log('✅ Xarlex Database Connection Online');
+
+        // Start deadline checker after DB connection
+        const { startDeadlineChecker } = require('./services/deadlineChecker');
+        startDeadlineChecker();
+    })
     .catch(err => console.error('❌ Database Connection Failed:', err));
 
 app.listen(PORT, () => console.log(`🚀 Xarlex Intelligence Hub active on port ${PORT}`));
